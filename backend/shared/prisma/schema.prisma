@@ -1,0 +1,56 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgcrypto]
+}
+
+enum LinkStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+model Link {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  url          String
+  title        String?
+  description  String?
+  thumbnailUrl String?    @map("thumbnail_url")
+  status       LinkStatus @default(pending)
+  errorMessage String?    @map("error_message")
+  retryCount   Int        @default(0) @map("retry_count")
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  tags LinkTag[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("links")
+}
+
+model Tag {
+  id   String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String @unique
+
+  links LinkTag[]
+
+  @@map("tags")
+}
+
+model LinkTag {
+  linkId String @map("link_id") @db.Uuid
+  tagId  String @map("tag_id") @db.Uuid
+
+  link Link @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([linkId, tagId])
+  @@map("link_tags")
+}

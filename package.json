@@ -1,0 +1,24 @@
+{
+  "name": "linkarchive",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Link archiving service with an async worker-queue architecture (API server + Redis queue + worker), built as an infra-engineering portfolio project.",
+  "workspaces": [
+    "backend/shared",
+    "backend/api",
+    "backend/worker",
+    "frontend"
+  ],
+  "scripts": {
+    "setup:env": "bash scripts/setup-env.sh",
+    "dev:api": "npm run start:dev --workspace=backend/api",
+    "dev:worker": "npm run start:dev --workspace=backend/worker",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=backend/shared && npm run build --workspace=backend/api && npm run build --workspace=backend/worker && npm run build --workspace=frontend",
+    "prisma:generate": "npm run prisma:generate --workspace=backend/shared",
+    "prisma:migrate": "npm run prisma:migrate --workspace=backend/shared"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
