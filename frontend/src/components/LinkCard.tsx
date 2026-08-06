@@ -8,7 +8,7 @@ export function LinkCard({ link, onChanged }: { link: Link; onChanged: () => voi
   const [busy, setBusy] = useState(false);
 
   async function handleDelete() {
-    if (!confirm('Delete this link?')) return;
+    if (!confirm('이 링크를 삭제할까요?')) return;
     setBusy(true);
     try {
       await deleteLink(link.id);
@@ -48,7 +48,7 @@ export function LinkCard({ link, onChanged }: { link: Link; onChanged: () => voi
       <div className="link-body">
         <div className="link-header">
           <StatusBadge status={link.status} />
-          <time dateTime={link.createdAt}>{new Date(link.createdAt).toLocaleDateString()}</time>
+          <time dateTime={link.createdAt}>{new Date(link.createdAt).toLocaleDateString('ko-KR')}</time>
         </div>
 
         <a className="link-title" href={link.url} target="_blank" rel="noreferrer">
@@ -58,7 +58,7 @@ export function LinkCard({ link, onChanged }: { link: Link; onChanged: () => voi
         {link.description && <p className="link-description">{link.description}</p>}
 
         {link.status === 'failed' && link.errorMessage && (
-          <p className="link-error">Error: {link.errorMessage}</p>
+          <p className="link-error">오류: {link.errorMessage}</p>
         )}
 
         <div className="link-tags">
@@ -69,7 +69,7 @@ export function LinkCard({ link, onChanged }: { link: Link; onChanged: () => voi
                 type="button"
                 onClick={() => handleRemoveTag(tag.id)}
                 disabled={busy}
-                aria-label={`Remove tag ${tag.name}`}
+                aria-label={`태그 ${tag.name} 삭제`}
               >
                 ×
               </button>
@@ -80,18 +80,18 @@ export function LinkCard({ link, onChanged }: { link: Link; onChanged: () => voi
         <form className="add-tag-form" onSubmit={handleAddTag}>
           <input
             type="text"
-            placeholder="Add tag"
+            placeholder="태그 추가"
             value={tagInput}
             onChange={(event) => setTagInput(event.target.value)}
             disabled={busy}
           />
           <button type="submit" disabled={busy}>
-            Add
+            추가
           </button>
         </form>
 
         <button type="button" className="delete-button" onClick={handleDelete} disabled={busy}>
-          Delete
+          삭제
         </button>
       </div>
     </article>

@@ -18,7 +18,7 @@ export function TagFilterBar({
         className={selected === null ? 'tag-chip active' : 'tag-chip'}
         onClick={() => onSelect(null)}
       >
-        All
+        전체
       </button>
       {tags.map((tag) => (
         <button

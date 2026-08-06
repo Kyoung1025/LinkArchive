@@ -13,7 +13,7 @@ export function SearchBar({ value, onChange }: { value: string; onChange: (value
     <input
       type="search"
       className="search-bar"
-      placeholder="Search by title or tag…"
+      placeholder="제목 또는 태그로 검색…"
       value={text}
       onChange={(event) => setText(event.target.value)}
     />

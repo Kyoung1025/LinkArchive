@@ -11,11 +11,11 @@ export function LinkList({
   onChanged: () => void;
 }) {
   if (loading && links.length === 0) {
-    return <p className="status-message">Loading…</p>;
+    return <p className="status-message">불러오는 중…</p>;
   }
 
   if (!loading && links.length === 0) {
-    return <p className="status-message">No links yet. Save one above.</p>;
+    return <p className="status-message">아직 저장된 링크가 없습니다. 위에서 링크를 저장해보세요.</p>;
   }
 
   return (

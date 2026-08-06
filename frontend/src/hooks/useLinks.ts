@@ -19,7 +19,7 @@ export function useLinks(query: LinksQuery) {
       setError(null);
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
-      setError(err instanceof Error ? err.message : 'Failed to load links');
+      setError(err instanceof Error ? err.message : '링크 목록을 불러오지 못했습니다');
     } finally {
       if (requestId === requestIdRef.current) setLoading(false);
     }

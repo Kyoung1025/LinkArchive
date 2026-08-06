@@ -11,7 +11,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     const message = Array.isArray(body.message) ? body.message.join(', ') : body.message;
-    throw new Error(message || `Request failed with status ${response.status}`);
+    throw new Error(message || `요청이 실패했습니다 (상태 코드: ${response.status})`);
   }
 
   if (response.status === 204) {

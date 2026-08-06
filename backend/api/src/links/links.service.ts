@@ -63,7 +63,7 @@ export class LinksService {
   async findOne(id: string) {
     const link = await this.prisma.link.findUnique({ where: { id }, ...LINK_WITH_TAGS });
     if (!link) {
-      throw new NotFoundException(`Link ${id} not found`);
+      throw new NotFoundException(`링크를 찾을 수 없습니다 (id: ${id})`);
     }
     return toResponse(link);
   }

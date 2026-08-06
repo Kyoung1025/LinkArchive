@@ -15,7 +15,7 @@ export function LinkForm({ onCreated }: { onCreated: () => void }) {
       setUrl('');
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save link');
+      setError(err instanceof Error ? err.message : '링크 저장에 실패했습니다');
     } finally {
       setSubmitting(false);
     }
@@ -31,7 +31,7 @@ export function LinkForm({ onCreated }: { onCreated: () => void }) {
         required
       />
       <button type="submit" disabled={submitting}>
-        {submitting ? 'Saving…' : 'Save link'}
+        {submitting ? '저장 중…' : '링크 저장'}
       </button>
       {error && <p className="form-error">{error}</p>}
     </form>

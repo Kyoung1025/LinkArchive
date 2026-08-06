@@ -26,7 +26,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>LinkArchive</h1>
-        <p className="app-subtitle">Save a link — metadata is fetched automatically in the background.</p>
+        <p className="app-subtitle">링크를 저장하면 메타데이터를 백그라운드에서 자동으로 가져옵니다.</p>
       </header>
 
       <LinkForm onCreated={handleChanged} />

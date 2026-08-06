@@ -41,7 +41,7 @@ export class TagsService {
   private async assertLinkExists(linkId: string) {
     const link = await this.prisma.link.findUnique({ where: { id: linkId }, select: { id: true } });
     if (!link) {
-      throw new NotFoundException(`Link ${linkId} not found`);
+      throw new NotFoundException(`링크를 찾을 수 없습니다 (id: ${linkId})`);
     }
   }
 }
