@@ -87,6 +87,20 @@ npm run dev:frontend     # http://localhost:5173
 
 UI에서 링크를 저장하거나 (`curl -X POST localhost:3000/links -H "Content-Type: application/json" -d '{"url":"https://example.com"}'`) 직접 호출해보면, 프론트엔드가 폴링하면서 상태가 `pending` → `processing` → `completed`/`failed`로 바뀌는 걸 확인할 수 있습니다.
 
+## 테스트
+
+```bash
+npm run test --workspace=backend/api      # LinksService: create/findAll/findOne/remove
+npm run test --workspace=backend/worker   # scrapeUrl: OG 태그, 폴백, 실패 처리
+```
+
+Jest + `ts-jest` 기반 유닛 테스트입니다. 실제 DB/Redis/네트워크 없이, 의존성(Prisma, Queue, undici의 `fetch` 등)을 mock으로 대체해서 각 함수 하나만 떼어놓고 검증합니다 — 그래서 위 명령어는 Postgres/Redis가 안 떠 있어도 그대로 실행됩니다. 커버 범위:
+
+- **`LinksService`** (`backend/api/src/links/links.service.spec.ts`): 링크 생성 시 DB 저장·큐 등록·메트릭 증가·태그 응답 형태, `status`/`tag`/`search` 조합 필터링, 단건 조회 404 처리, 삭제 시 존재 확인 후에만 delete 호출
+- **`scrapeUrl`** (`backend/worker/src/scrape.spec.ts`): Open Graph 태그 우선 추출, `<title>`/`<meta description>`으로 폴백, 메타데이터가 전혀 없을 때 처리, 상대경로 `og:image`의 절대경로 변환, HTTP 실패 상태 코드 처리, 요청 헤더(User-Agent/Accept) 검증
+
+아직 컨트롤러·프론트엔드·E2E 테스트는 없습니다 (로드맵 참고).
+
 ## API
 
 | 엔드포인트 | 설명 |
