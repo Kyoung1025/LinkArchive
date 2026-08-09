@@ -87,11 +87,15 @@ LinkArchive/
 │   ├── worker/                       # BullMQ 워커 (API와 별도 프로세스)
 │   │   ├── src/
 │   │   │   ├── scrape.ts             # URL fetch + Open Graph 태그 파싱
+│   │   │   ├── job-processor.ts      # job 처리 로직 (BullMQ Worker에 주입, 테스트용으로 분리)
 │   │   │   ├── logger.ts             # pino 구조화 로깅
 │   │   │   ├── metrics.ts            # 워커 자체 /metrics HTTP 서버
-│   │   │   └── main.ts               # BullMQ Worker + 재시도/실패 처리
+│   │   │   └── main.ts               # BullMQ Worker 기동 + 그래스풀 셧다운
 │   │   └── test/
-│   │       └── scrape.spec.ts
+│   │       ├── scrape.spec.ts
+│   │       └── integration/          # 실제 Postgres+Redis+Worker를 띄우는 통합 테스트
+│   │           ├── pipeline.integration.spec.ts
+│   │           └── concurrency.integration.spec.ts
 │   │
 │   └── shared/                       # api & worker 공용
 │       ├── prisma/
@@ -138,17 +142,33 @@ UI에서 링크를 저장하거나 (`curl -X POST localhost:3000/links -H "Conte
 
 ## 테스트
 
+### 유닛 테스트 — 인프라 없이 실행 가능
+
 ```bash
 npm run test --workspace=backend/api      # LinksService: create/findAll/findOne/remove
 npm run test --workspace=backend/worker   # scrapeUrl: OG 태그, 폴백, 실패 처리
 ```
 
-Jest + `ts-jest` 기반 유닛 테스트입니다. 실제 DB/Redis/네트워크 없이, 의존성(Prisma, Queue, undici의 `fetch` 등)을 mock으로 대체해서 각 함수 하나만 떼어놓고 검증합니다 — 그래서 위 명령어는 Postgres/Redis가 안 떠 있어도 그대로 실행됩니다. 커버 범위:
+Jest + `ts-jest` 기반입니다. 실제 DB/Redis/네트워크 없이, 의존성(Prisma, Queue, undici의 `fetch` 등)을 mock으로 대체해서 각 함수 하나만 떼어놓고 검증합니다 — 그래서 위 명령어는 Postgres/Redis가 안 떠 있어도 그대로 실행됩니다. 커버 범위:
 
 - **`LinksService`** (`backend/api/test/links/links.service.spec.ts`): 링크 생성 시 DB 저장·큐 등록·메트릭 증가·태그 응답 형태, `status`/`tag`/`search` 조합 필터링, 단건 조회 404 처리, 삭제 시 존재 확인 후에만 delete 호출
 - **`scrapeUrl`** (`backend/worker/test/scrape.spec.ts`): Open Graph 태그 우선 추출, `<title>`/`<meta description>`으로 폴백, 메타데이터가 전혀 없을 때 처리, 상대경로 `og:image`의 절대경로 변환, HTTP 실패 상태 코드 처리, 요청 헤더(User-Agent/Accept) 검증
 
-아직 컨트롤러·프론트엔드·E2E 테스트는 없습니다 (로드맵 참고).
+### 통합 테스트 — 실제 Postgres + Redis 필요
+
+```bash
+# Postgres/Redis가 떠 있어야 함 (로컬 실행 방법의 2번 참고)
+npm run test:integration --workspace=backend/worker
+```
+
+유닛 테스트는 각 함수를 mock으로 고립시켜서 검증하지만, "저장 → 큐 push → 워커 처리 → DB 반영"이 실제로 엮여서 도는지는 그것만으로는 증명되지 않습니다. `backend/worker/test/integration/`은 실제 Redis 큐 + 실제 BullMQ Worker(프로덕션과 동일한 `job-processor.ts`) + 실제 Postgres로 전체 배관을 검증합니다. 외부 사이트만 로컬 HTTP 서버로 대체해서 빠르고 결정적으로 만들었습니다 (OG 파싱 로직 자체는 이미 유닛 테스트가 커버).
+
+- **`pipeline.integration.spec.ts`**: 링크 생성 → 큐에 job 추가 → 워커가 실제로 집어서 처리 → DB에 `completed`+메타데이터로 반영됨을 확인. 존재하지 않는 주소로는 재시도 소진 후 `failed`+`error_message`까지 확인.
+- **`concurrency.integration.spec.ts`**: 워커의 `concurrency: 5` 설정이 실제로 병렬 처리되는지 검증. `WORKER_CONCURRENCY`보다 많은 링크를 동시에 저장하고, 로컬 서버가 동시 요청 수를 직접 세어(`maxInFlight`) 1개 초과로 겹쳤음을 확인하며, 각 링크가 서로 다른 페이지의 제목을 정확히 받았는지(동시 처리 중 결과가 뒤섞이지 않았는지)까지 검증.
+
+이 두 파일은 기본 `npm run test`에는 포함되지 않습니다(별도 `jest.integration.config.js`) — 실제 인프라가 필요해서 순수 유닛 테스트와 실행 속도·전제조건이 다르기 때문입니다.
+
+아직 컨트롤러·프론트엔드 테스트, 그리고 API 서버까지 포함한 진짜 E2E(HTTP 요청부터 시작하는) 테스트는 없습니다 (로드맵 참고).
 
 ## API
 
