@@ -46,6 +46,15 @@
 - `GET /metrics`는 워커가 API를 거쳐 보고하는 방식이 아니라 **두 프로세스 모두**에 존재합니다(API는 자신의 메인 포트에, 워커는 별도 포트인 기본값 `9100`에). 워커가 여러 개로 늘어나면 각 워커 레플리카를 개별 Prometheus 타겟으로 스크랩해야 하기 때문입니다.
 - 모든 로그는 `timestamp`, `level`, `service`, `message`와 관련 ID(`linkId`, 재시도 횟수)를 담은 JSON이라, 별도의 파싱 단계 없이 로그 수집기(Loki, CloudWatch 등)로 바로 보낼 수 있습니다.
 
+## 테스트 전략
+
+`LinksService`(`backend/api`)와 `scrapeUrl`(`backend/worker`)의 유닛 테스트는 실제 Postgres/Redis/네트워크를 전혀 쓰지 않습니다. Prisma·BullMQ 큐·undici의 `fetch`를 전부 mock으로 갈아끼워서, "이 함수가 의존하는 것들을 올바른 인자로 호출하는가"와 "입력에 따라 올바른 결과를 반환하는가"만 검증합니다. 이렇게 만든 이유는 두 가지입니다:
+
+- **속도와 결정성**: 인프라 없이 밀리초 단위로 끝나므로, 나중에 CI 파이프라인(로드맵 3단계)에 얹어도 매 PR마다 DB 컨테이너를 띄울 필요가 없습니다.
+- **경계 검증**: 워커가 실제로 외부 사이트에 접속했는지가 아니라, "OG 태그가 있으면 그걸 쓰고 없으면 `<title>`로 폴백한다"는 파싱 로직 자체가 맞는지를 검증합니다 — 실제 사이트 접속 성공 여부는 이 테스트의 관심사가 아닙니다.
+
+아직 컨트롤러 레벨 통합 테스트나 API 전체를 띄워서 확인하는 E2E 테스트는 없습니다 ([README 로드맵](../README.md#로드맵) 참고).
+
 ## 데이터 모델
 
 정확한 스키마는 [`backend/shared/prisma/schema.prisma`](../backend/shared/prisma/schema.prisma)를 참고하세요. `links`, `tags`, 그리고 조인 테이블 `link_tags`는 프로젝트 기획서의 스키마를 그대로 매핑한 것입니다. `LinkStatus` enum(`pending`/`processing`/`completed`/`failed`)은 Prisma가 생성하며, `backend/shared`를 통해 API와 워커가 공유하므로 양쪽이 문자열 리터럴을 관례로 맞추는 대신 동일한 타입을 사용합니다.

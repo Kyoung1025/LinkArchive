@@ -135,7 +135,7 @@ Jest + `ts-jest` 기반 유닛 테스트입니다. 실제 DB/Redis/네트워크 
 - [x] `LinksService` 유닛 테스트 (`backend/api/src/links/links.service.spec.ts`, Jest)
 - [x] 워커 `scrapeUrl` 유닛 테스트 (`backend/worker/src/scrape.spec.ts`, Jest)
 - [ ] 지금부터 커밋을 기능 단위로 쪼개는 습관 적용 (테스트 추가도 별도 커밋으로)
-- [ ] `docs/architecture.md`가 현재 코드와 실제로 일치하는지 재검토
+- [x] `docs/architecture.md` 재검토 — 재시도 설정·메트릭 포트·헬스체크·로그 필드 전부 코드와 일치 확인, 테스트 전략 섹션 추가
 
 ### 2단계 — 2026-08-19 ~ (부트캠프 진행 중, 진도별)
 
