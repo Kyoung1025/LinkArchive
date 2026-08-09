@@ -48,62 +48,87 @@ URL을 가져와서 HTML을 파싱하는 작업은 느리고 예측하기 어렵
 
 ```
 LinkArchive/
-├── frontend/                         # React + TS (Vite)
+├── frontend/                             # React + TS (Vite)
 │   └── src/
 │       ├── api/
-│       │   ├── client.ts             # fetch 래퍼 — 백엔드 API 호출
-│       │   └── types.ts              # Link/Tag 등 프론트-백엔드 공유 타입
+│       │   ├── client.ts                 # fetch 래퍼 — 백엔드 API 호출
+│       │   └── types.ts                  # Link/Tag 등 프론트-백엔드 공유 타입
 │       ├── components/
-│       │   ├── LinkCard.tsx          # 카드 1개 (썸네일/제목/설명/태그/삭제)
-│       │   ├── LinkForm.tsx          # URL 저장 폼
-│       │   ├── LinkList.tsx          # 카드 그리드 + 로딩/빈 상태
-│       │   ├── SearchBar.tsx         # 검색 입력 (디바운스)
-│       │   ├── StatusBadge.tsx       # pending/processing/completed/failed 배지
-│       │   └── TagFilterBar.tsx      # 태그 필터 칩
+│       │   ├── LinkCard.tsx              # 카드 1개 (썸네일/제목/설명/태그/삭제)
+│       │   ├── LinkForm.tsx              # URL 저장 폼
+│       │   ├── LinkList.tsx              # 카드 그리드 + 로딩/빈 상태
+│       │   ├── SearchBar.tsx             # 검색 입력 (디바운스)
+│       │   ├── StatusBadge.tsx           # pending/processing/completed/failed 배지
+│       │   └── TagFilterBar.tsx          # 태그 필터 칩
 │       ├── hooks/
-│       │   ├── useLinks.ts           # 목록 조회 + 2~3초 상태 폴링
-│       │   └── useTags.ts            # 태그 목록 조회
-│       └── App.tsx / main.tsx / *.css
+│       │   ├── useLinks.ts               # 목록 조회 + 2~3초 상태 폴링
+│       │   └── useTags.ts                # 태그 목록 조회
+│       ├── App.tsx                       # 최상위 컴포넌트 — 상태/필터 조합
+│       ├── App.css                       # 레이아웃 + 컴포넌트 스타일
+│       ├── index.css                     # 전역 리셋 + 다크 테마 변수
+│       └── main.tsx                      # React 진입점
 │
 ├── backend/
-│   ├── api/                          # NestJS API 서버
+│   ├── api/                              # NestJS API 서버
 │   │   ├── src/
 │   │   │   ├── links/
-│   │   │   │   ├── dto/              # CreateLinkDto, QueryLinksDto
-│   │   │   │   ├── links.controller.ts   # POST/GET/DELETE /links, 태그 서브라우트
-│   │   │   │   ├── links.service.ts      # 저장·조회·삭제·필터링 로직
+│   │   │   │   ├── dto/
+│   │   │   │   │   ├── create-link.dto.ts    # POST /links 바디 검증
+│   │   │   │   │   └── query-links.dto.ts    # GET /links 쿼리 검증
+│   │   │   │   ├── links.controller.ts       # POST/GET/DELETE /links, 태그 서브라우트
+│   │   │   │   ├── links.service.ts          # 저장·조회·삭제·필터링 로직
 │   │   │   │   └── links.module.ts
-│   │   │   ├── tags/                 # GET /tags, 태그 upsert/연결/해제
-│   │   │   ├── health/                # GET /health — DB+Redis 개별 체크
-│   │   │   ├── metrics/               # GET /metrics — prom-client
-│   │   │   ├── prisma/                # PrismaService (DB 커넥션 lifecycle)
-│   │   │   ├── queue/                 # BullMQ 큐 producer
-│   │   │   ├── redis/                 # ioredis 커넥션
-│   │   │   ├── app.module.ts
-│   │   │   └── main.ts
+│   │   │   ├── tags/
+│   │   │   │   ├── dto/add-tag.dto.ts        # 태그 이름 검증
+│   │   │   │   ├── tags.controller.ts        # GET /tags
+│   │   │   │   ├── tags.service.ts           # 태그 upsert/연결/해제
+│   │   │   │   └── tags.module.ts
+│   │   │   ├── health/
+│   │   │   │   ├── health.controller.ts      # GET /health — DB+Redis 개별 체크
+│   │   │   │   └── health.module.ts
+│   │   │   ├── metrics/
+│   │   │   │   ├── metrics.controller.ts     # GET /metrics
+│   │   │   │   ├── metrics.service.ts        # prom-client 레지스트리/카운터/게이지
+│   │   │   │   └── metrics.module.ts
+│   │   │   ├── prisma/
+│   │   │   │   ├── prisma.service.ts         # PrismaClient 커넥션 lifecycle
+│   │   │   │   └── prisma.module.ts
+│   │   │   ├── queue/
+│   │   │   │   ├── queue.service.ts          # BullMQ 큐 producer (job push)
+│   │   │   │   └── queue.module.ts
+│   │   │   ├── redis/
+│   │   │   │   ├── redis.service.ts          # ioredis 커넥션 (헬스체크용)
+│   │   │   │   └── redis.module.ts
+│   │   │   ├── app.module.ts                 # 모듈 조립 + 로깅 설정
+│   │   │   └── main.ts                       # 부트스트랩, CORS, ValidationPipe
 │   │   └── test/
-│   │       └── links/links.service.spec.ts
+│   │       └── links/
+│   │           └── links.service.spec.ts     # LinksService 유닛 테스트
 │   │
-│   ├── worker/                       # BullMQ 워커 (API와 별도 프로세스)
+│   ├── worker/                           # BullMQ 워커 (API와 별도 프로세스)
 │   │   ├── src/
-│   │   │   ├── scrape.ts             # URL fetch + Open Graph 태그 파싱
-│   │   │   ├── job-processor.ts      # job 처리 로직 (BullMQ Worker에 주입, 테스트용으로 분리)
-│   │   │   ├── logger.ts             # pino 구조화 로깅
-│   │   │   ├── metrics.ts            # 워커 자체 /metrics HTTP 서버
-│   │   │   └── main.ts               # BullMQ Worker 기동 + 그래스풀 셧다운
+│   │   │   ├── scrape.ts                     # URL fetch + Open Graph 태그 파싱
+│   │   │   ├── job-processor.ts              # job 처리 로직 (테스트에서 재사용하도록 분리)
+│   │   │   ├── logger.ts                     # pino 구조화 로깅
+│   │   │   ├── metrics.ts                    # 워커 자체 /metrics HTTP 서버
+│   │   │   └── main.ts                       # Worker 기동 + 그레이스풀 셧다운
 │   │   └── test/
-│   │       ├── scrape.spec.ts
-│   │       └── integration/          # 실제 Postgres+Redis+Worker를 띄우는 통합 테스트
-│   │           ├── pipeline.integration.spec.ts
-│   │           └── concurrency.integration.spec.ts
+│   │       ├── scrape.spec.ts                # scrapeUrl 유닛 테스트
+│   │       └── integration/
+│   │           ├── test-server.ts                    # 테스트용 로컬 HTTP 서버 헬퍼
+│   │           ├── pipeline.integration.spec.ts       # 전체 파이프라인 통합 테스트
+│   │           └── concurrency.integration.spec.ts    # 동시성 테스트
 │   │
-│   └── shared/                       # api & worker 공용
+│   └── shared/                           # api & worker 공용
 │       ├── prisma/
-│       │   ├── schema.prisma         # links/tags/link_tags 스키마
+│       │   ├── schema.prisma                 # links/tags/link_tags 스키마
 │       │   └── migrations/
+│       │       ├── migration_lock.toml
+│       │       └── 20260806185208_init/
+│       │           └── migration.sql
 │       └── src/
-│           ├── index.ts              # Prisma Client + 타입 재수출
-│           └── queue.ts              # 큐 이름, job payload 타입
+│           ├── index.ts                      # Prisma Client + 타입 재수출
+│           └── queue.ts                      # 큐 이름, job payload 타입
 │
 ├── docs/
 │   └── architecture.md               # 설계 근거, 재시도/관측성, 트러블슈팅 기록
