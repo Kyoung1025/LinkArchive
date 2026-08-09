@@ -55,6 +55,21 @@
 
 아직 컨트롤러 레벨 통합 테스트나 API 전체를 띄워서 확인하는 E2E 테스트는 없습니다 ([README 로드맵](../README.md#로드맵) 참고).
 
+## 트러블슈팅 기록
+
+### VSCode에서만 `jest`/`describe`/`expect`를 못 찾는다고 뜸 (터미널 `tsc`는 정상)
+
+**증상**: `scrape.spec.ts`를 열면 Problems 패널에 `'jest' 이름을 찾을 수 없습니다 (ts2304)` 등 20개 에러가 떴는데, 같은 파일을 `npx tsc --noEmit`으로 직접 컴파일하면 에러가 0개였음.
+
+**원인은 두 단계였음**:
+
+1. `tsconfig.json`에서 `*.spec.ts`를 `exclude`해서 `dist`에 안 들어가게 해뒀는데, VSCode는 이 파일을 "이 폴더가 하나의 TS 프로젝트다"라고 판단하는 기준으로 쓴다. 테스트 파일을 거기서 빼면 VSCode 입장에서는 그 파일이 프로젝트 소속이 아니게 되어 전역 타입 인식이 깨짐.
+2. 1번을 고친(`tsconfig.json`은 에디터용으로 전부 포함, `tsconfig.build.json`이 빌드용으로 테스트만 제외) 뒤에도 재현됨. 원인은 `backend/worker/node_modules`가 별도로 존재했던 것 — npm workspace 간 `pino` 버전이 달라서 npm이 그 버전만 워크스페이스 로컬에 따로 설치해둔 상태였음(`@types`는 없이 `pino`만). TypeScript는 `jest`/`node` 같은 전역 타입을 "현재 폴더에서 위로 올라가며 `node_modules/@types`를 찾는" 방식으로 자동 인식하는데, 이 로컬 `node_modules`의 존재가 VSCode의 TS 서버와 터미널의 `tsc` 사이에서 이 탐색 과정을 서로 다르게 만든 것으로 보임(둘 다 같은 알고리즘이어야 하지만, 캐싱된 프로젝트 상태 차이로 실제로는 결과가 갈렸음).
+
+**해결**: `tsconfig.json`의 `compilerOptions`에 `"types": ["jest", "node"]`를 명시적으로 선언. 자동 탐색(모호할 수 있음)에 기대는 대신 정확히 무엇을 로드할지 못박아서, 어디서 실행하든 동일한 결과가 나오게 만듦.
+
+**교훈**: 모노레포에서 워크스페이스 간 의존성 버전이 어긋나면 npm이 일부 패키지를 특정 워크스페이스에만 로컬로 설치하는데, 이게 IDE와 CLI의 타입 해석을 갈라놓을 수 있다. 자동 추론에 기대는 설정(특히 `types` 자동 포함)은 모노레포에서는 명시적으로 고정해두는 편이 안전하다.
+
 ## 데이터 모델
 
 정확한 스키마는 [`backend/shared/prisma/schema.prisma`](../backend/shared/prisma/schema.prisma)를 참고하세요. `links`, `tags`, 그리고 조인 테이블 `link_tags`는 프로젝트 기획서의 스키마를 그대로 매핑한 것입니다. `LinkStatus` enum(`pending`/`processing`/`completed`/`failed`)은 Prisma가 생성하며, `backend/shared`를 통해 API와 워커가 공유하므로 양쪽이 문자열 리터럴을 관례로 맞추는 대신 동일한 타입을 사용합니다.
