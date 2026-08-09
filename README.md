@@ -96,8 +96,8 @@ npm run test --workspace=backend/worker   # scrapeUrl: OG 태그, 폴백, 실패
 
 Jest + `ts-jest` 기반 유닛 테스트입니다. 실제 DB/Redis/네트워크 없이, 의존성(Prisma, Queue, undici의 `fetch` 등)을 mock으로 대체해서 각 함수 하나만 떼어놓고 검증합니다 — 그래서 위 명령어는 Postgres/Redis가 안 떠 있어도 그대로 실행됩니다. 커버 범위:
 
-- **`LinksService`** (`backend/api/src/links/links.service.spec.ts`): 링크 생성 시 DB 저장·큐 등록·메트릭 증가·태그 응답 형태, `status`/`tag`/`search` 조합 필터링, 단건 조회 404 처리, 삭제 시 존재 확인 후에만 delete 호출
-- **`scrapeUrl`** (`backend/worker/src/scrape.spec.ts`): Open Graph 태그 우선 추출, `<title>`/`<meta description>`으로 폴백, 메타데이터가 전혀 없을 때 처리, 상대경로 `og:image`의 절대경로 변환, HTTP 실패 상태 코드 처리, 요청 헤더(User-Agent/Accept) 검증
+- **`LinksService`** (`backend/api/test/links/links.service.spec.ts`): 링크 생성 시 DB 저장·큐 등록·메트릭 증가·태그 응답 형태, `status`/`tag`/`search` 조합 필터링, 단건 조회 404 처리, 삭제 시 존재 확인 후에만 delete 호출
+- **`scrapeUrl`** (`backend/worker/test/scrape.spec.ts`): Open Graph 태그 우선 추출, `<title>`/`<meta description>`으로 폴백, 메타데이터가 전혀 없을 때 처리, 상대경로 `og:image`의 절대경로 변환, HTTP 실패 상태 코드 처리, 요청 헤더(User-Agent/Accept) 검증
 
 아직 컨트롤러·프론트엔드·E2E 테스트는 없습니다 (로드맵 참고).
 
@@ -131,8 +131,8 @@ Jest + `ts-jest` 기반 유닛 테스트입니다. 실제 DB/Redis/네트워크 
 ### 1단계 
 
 
-- [x] `LinksService` 유닛 테스트 (`backend/api/src/links/links.service.spec.ts`, Jest)
-- [x] 워커 `scrapeUrl` 유닛 테스트 (`backend/worker/src/scrape.spec.ts`, Jest)
+- [x] `LinksService` 유닛 테스트 (`backend/api/test/links/links.service.spec.ts`, Jest)
+- [x] 워커 `scrapeUrl` 유닛 테스트 (`backend/worker/test/scrape.spec.ts`, Jest)
 - [ ] 지금부터 커밋을 기능 단위로 쪼개는 습관 적용 (테스트 추가도 별도 커밋으로)
 - [x] `docs/architecture.md` 재검토 — 재시도 설정·메트릭 포트·헬스체크·로그 필드 전부 코드와 일치 확인, 테스트 전략 섹션 추가
 

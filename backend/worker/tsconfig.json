@@ -4,8 +4,6 @@
     "module": "commonjs",
     "lib": ["ES2021"],
     "declaration": false,
-    "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -13,5 +11,5 @@
     "sourceMap": true,
     "types": ["jest", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

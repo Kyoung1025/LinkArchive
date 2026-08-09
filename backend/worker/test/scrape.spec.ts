@@ -1,4 +1,4 @@
-import { scrapeUrl } from './scrape';
+import { scrapeUrl } from '../src/scrape';
 
 const mockFetch = jest.fn();
 

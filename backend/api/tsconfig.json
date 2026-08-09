@@ -4,8 +4,6 @@
     "target": "ES2021",
     "lib": ["ES2021"],
     "declaration": false,
-    "outDir": "dist",
-    "rootDir": "src",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strict": true,
@@ -16,5 +14,5 @@
     "incremental": true,
     "types": ["jest", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

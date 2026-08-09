@@ -1,9 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
 import type { PinoLogger } from 'nestjs-pino';
-import { LinksService } from './links.service';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { QueueService } from '../queue/queue.service';
-import type { MetricsService } from '../metrics/metrics.service';
+import { LinksService } from '../../src/links/links.service';
+import type { PrismaService } from '../../src/prisma/prisma.service';
+import type { QueueService } from '../../src/queue/queue.service';
+import type { MetricsService } from '../../src/metrics/metrics.service';
 
 function createLinksService() {
   const prisma = {
