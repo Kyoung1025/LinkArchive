@@ -48,15 +48,64 @@ URL을 가져와서 HTML을 파싱하는 작업은 느리고 예측하기 어렵
 
 ```
 LinkArchive/
-├── frontend/          # React + TS (Vite) — 저장 폼, 카드 그리드, 상태 폴링, 태그 필터, 검색
+├── frontend/                         # React + TS (Vite)
+│   └── src/
+│       ├── api/
+│       │   ├── client.ts             # fetch 래퍼 — 백엔드 API 호출
+│       │   └── types.ts              # Link/Tag 등 프론트-백엔드 공유 타입
+│       ├── components/
+│       │   ├── LinkCard.tsx          # 카드 1개 (썸네일/제목/설명/태그/삭제)
+│       │   ├── LinkForm.tsx          # URL 저장 폼
+│       │   ├── LinkList.tsx          # 카드 그리드 + 로딩/빈 상태
+│       │   ├── SearchBar.tsx         # 검색 입력 (디바운스)
+│       │   ├── StatusBadge.tsx       # pending/processing/completed/failed 배지
+│       │   └── TagFilterBar.tsx      # 태그 필터 칩
+│       ├── hooks/
+│       │   ├── useLinks.ts           # 목록 조회 + 2~3초 상태 폴링
+│       │   └── useTags.ts            # 태그 목록 조회
+│       └── App.tsx / main.tsx / *.css
+│
 ├── backend/
-│   ├── api/           # NestJS: /links, /tags, /health, /metrics
-│   ├── worker/        # BullMQ 워커: 스크래핑 → 재시도 → DB 반영
-│   └── shared/        # Prisma 스키마 + 생성된 클라이언트, 공용 TS 타입 (api & worker 공용)
+│   ├── api/                          # NestJS API 서버
+│   │   ├── src/
+│   │   │   ├── links/
+│   │   │   │   ├── dto/              # CreateLinkDto, QueryLinksDto
+│   │   │   │   ├── links.controller.ts   # POST/GET/DELETE /links, 태그 서브라우트
+│   │   │   │   ├── links.service.ts      # 저장·조회·삭제·필터링 로직
+│   │   │   │   └── links.module.ts
+│   │   │   ├── tags/                 # GET /tags, 태그 upsert/연결/해제
+│   │   │   ├── health/                # GET /health — DB+Redis 개별 체크
+│   │   │   ├── metrics/               # GET /metrics — prom-client
+│   │   │   ├── prisma/                # PrismaService (DB 커넥션 lifecycle)
+│   │   │   ├── queue/                 # BullMQ 큐 producer
+│   │   │   ├── redis/                 # ioredis 커넥션
+│   │   │   ├── app.module.ts
+│   │   │   └── main.ts
+│   │   └── test/
+│   │       └── links/links.service.spec.ts
+│   │
+│   ├── worker/                       # BullMQ 워커 (API와 별도 프로세스)
+│   │   ├── src/
+│   │   │   ├── scrape.ts             # URL fetch + Open Graph 태그 파싱
+│   │   │   ├── logger.ts             # pino 구조화 로깅
+│   │   │   ├── metrics.ts            # 워커 자체 /metrics HTTP 서버
+│   │   │   └── main.ts               # BullMQ Worker + 재시도/실패 처리
+│   │   └── test/
+│   │       └── scrape.spec.ts
+│   │
+│   └── shared/                       # api & worker 공용
+│       ├── prisma/
+│       │   ├── schema.prisma         # links/tags/link_tags 스키마
+│       │   └── migrations/
+│       └── src/
+│           ├── index.ts              # Prisma Client + 타입 재수출
+│           └── queue.ts              # 큐 이름, job payload 타입
+│
 ├── docs/
-│   └── architecture.md
+│   └── architecture.md               # 설계 근거, 재시도/관측성, 트러블슈팅 기록
+│
 └── scripts/
-    └── setup-env.sh   # .env.example을 각 패키지에 복사
+    └── setup-env.sh                  # .env.example을 각 패키지에 복사
 ```
 
 ## 로컬 실행 방법
