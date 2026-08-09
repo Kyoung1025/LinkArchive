@@ -118,7 +118,8 @@ UI에서 링크를 저장하거나 (`curl -X POST localhost:3000/links -H "Conte
 
 부트캠프가 다룰 영역(Docker/Terraform/K8s)은 미리 손대지 않고, 그와 무관한 기반 작업만 채웁니다.
 
-- [ ] 테스트 코드 추가 (최소 `LinksService`, 워커 `scrapeUrl` 유닛 테스트)
+- [x] `LinksService` 유닛 테스트 (`backend/api/src/links/links.service.spec.ts`, Jest)
+- [ ] 워커 `scrapeUrl` 유닛 테스트
 - [ ] 지금부터 커밋을 기능 단위로 쪼개는 습관 적용 (테스트 추가도 별도 커밋으로)
 - [ ] `docs/architecture.md`가 현재 코드와 실제로 일치하는지 재검토
 
