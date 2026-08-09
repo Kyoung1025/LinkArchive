@@ -9,7 +9,8 @@
     "start": "node dist/main.js",
     "start:dev": "tsx watch src/main.ts",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:integration": "jest --config jest.integration.config.js"
   },
   "dependencies": {
     "@linkarchive/shared": "*",
@@ -31,7 +32,7 @@
   "jest": {
     "moduleFileExtensions": ["js", "json", "ts"],
     "rootDir": ".",
-    "testRegex": "test/.*\\.spec\\.ts$",
+    "testRegex": "test/(?!.*\\.integration\\.spec\\.ts$).*\\.spec\\.ts$",
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },
